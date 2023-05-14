@@ -9,6 +9,20 @@ var usersRouter = require('./routes/users');
 
 var app = express();
 
+const { sequelize } = require("./models");
+
+// alter: true to make actual updates to the database
+sequelize
+  .sync({
+    alter: false,
+  })
+  .then(() => {
+    console.log("Database connection success");
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
