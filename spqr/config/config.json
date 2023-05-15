@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "Admin",
-    "password": "Spqr1!@98",
-    "database": "database-1",
+    "username": "admin",
+    "password": "Spqrnewpassword",
+    "database": "spqr_schema",
     "host": "database-1.c0ijc0orfrxw.ap-northeast-2.rds.amazonaws.com",
     "dialect": "mysql"
   },
