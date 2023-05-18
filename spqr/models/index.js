@@ -16,15 +16,15 @@ db.Sequelize = Sequelize;
 /** Models */
 db.Restaurant = require('./restaurants')(sequelize, Sequelize);
 db.Branch = require('./branches')(sequelize, Sequelize);
-db.MainCategory = require('./mainCategories')(sequelize, Sequelize);
-db.BranchMenuStatus = require('./branchesMenuStatus')(sequelize, Sequelize);
-db.MainMenu = require('./mainMenu')(sequelize, Sequelize);
-db.OptionCategory = require('./optionCategory')(sequelize, Sequelize);
-db.OptionMenu = require('./optionMenus')(sequelize, Sequelize);
-db.Order = require('./ordesr')(sequelize, Sequelize);
-db.SubOrder = require('./subOrders')(sequelize, Sequelize);
-db.OrderItem = require('./orderItems')(sequelize, Sequelize);
-db.OrderItemOption = require('./orderItemOptions')(sequelize, Sequelize);
+db.MainCategory = require('./main_categories')(sequelize, Sequelize);
+db.BranchMenuStatus = require('./branches_menu_status')(sequelize, Sequelize);
+db.MainMenu = require('./main_menus')(sequelize, Sequelize);
+db.OptionCategory = require('./option_categories')(sequelize, Sequelize);
+db.OptionMenu = require('./option_menus')(sequelize, Sequelize);
+db.Order = require('./orders')(sequelize, Sequelize);
+db.SubOrder = require('./suborders')(sequelize, Sequelize);
+db.OrderItem = require('./order_items')(sequelize, Sequelize);
+db.OrderItemOption = require('./order_item_options')(sequelize, Sequelize);
 
 /** Relations */
 
@@ -84,4 +84,4 @@ db.OptionMenu.hasMany(db.OrderItemOption, { foreignKey: 'option_menu_id' });
 db.OrderItemOption.belongsTo(db.OptionMenu, { foreignKey: 'option_menu_id' });
 
 
-module.exports = db;ms
+module.exports = db;
