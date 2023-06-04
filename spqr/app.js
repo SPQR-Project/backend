@@ -52,4 +52,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+const server = app.listen(0, () => {
+  const address = server.address();
+  const host = address.address;
+  const port = address.port;
+  console.log(`Server is running at http://${host}:${port}`);
+});
+
 module.exports = app;
