@@ -6,6 +6,6 @@ const mobileCartController = require('../../controller/mobileCartController')
 router.get('/:restaurant_id/:branch_id/:table_number', mobileCartController.getPastOrder)
 
 /** Post cart info for restaurant_id > branch_id > :table_number */
-// router.get('/:restaurant_id/:branch_id/:table_number/:menu_id', mobileMenuController.getMobileMenuDetail)
+// router.post('/:restaurant_id/:branch_id/:table_number/:menu_id', mobileMenuController.postCurrentOrder)
 
 module.exports = router;

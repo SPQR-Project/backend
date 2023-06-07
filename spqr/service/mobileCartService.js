@@ -1,4 +1,4 @@
-const { Restaurant, MainCategory, Order, OrderItem, SubOrder, MainMenu, OptionCategory, OptionMenu} = require('../models');
+const { Restaurant, MainCategory, OrderItemOption, Order, OrderItem, SubOrder, MainMenu, OptionCategory, OptionMenu} = require('../models');
 const sequelize = require('sequelize');
 const Op = sequelize.Op;
 
@@ -11,7 +11,7 @@ module.exports = {
               restaurant_id: restaurant_id,
               branch_id: branch_id,
               table_number: table_number,
-            order_status: 1, // 'active' = 1 indicates that the suborder/past order exists
+              order_status: 1, // 'active' = 1 indicates that the suborder/past order exists
             },
             include: {
               model: SubOrder,
@@ -20,15 +20,16 @@ module.exports = {
                   model: OrderItem,
                   include: [
                     {
-                      model: MainMenu,
+                      model: MainMenu, 
+                     
+                    },
+                    {
+                      model: OrderItemOption,
                       include: [
                         {
-                            model: OptionCategory,
-                            include: {
-                              model: OptionMenu,
-                            },
-                          },
-                      ]
+                          model: OptionMenu,
+                        },
+                      ],
                     },
                   ],
                 },
@@ -36,27 +37,23 @@ module.exports = {
             },
           });
           
-          const formattedOrders = pastOrders.map((order) => {
+          const mappedOrders = pastOrders.map((order) => {
             const subOrders = order.SubOrders.map((subOrder) => {
               return {
                 sub_order_id: subOrder.id,
+                order_status: order.status,
                 main_menus: subOrder.OrderItems.map((item) => {
+                  const optionMenus = item.OrderItemOptions.map((option) => {
+                    return {
+                      name: option.OptionMenu.name,
+                      price: option.OptionMenu.price,
+                    };
+                  });
+      
                   return {
                     name: item.MainMenu.name,
                     price: item.MainMenu.price,
-                    option_menus: item.MainMenu.OptionCategories.map((category) => {
-                      return {
-                        option_category_name: category.name,
-                        option_menus: category.OptionMenus.map((option) => {
-                          return {
-                            id: option.id,
-                            name: option.name,
-                            price: option.price,
-                            description: option.description,
-                          };
-                        }),
-                      };
-                    }),
+                    option_menus: optionMenus,
                   };
                 }),
               };
@@ -66,7 +63,7 @@ module.exports = {
           });
           
       
-        return {'past_orders' : formattedOrders};
+        return {'past_orders' : mappedOrders};
         } catch (error) {
             throw error;
         }
