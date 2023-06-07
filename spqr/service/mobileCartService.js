@@ -41,7 +41,7 @@ module.exports = {
             const subOrders = order.SubOrders.map((subOrder) => {
               return {
                 sub_order_id: subOrder.id,
-                order_status: order.status,
+                order_status: subOrder.order_status,
                 main_menus: subOrder.OrderItems.map((item) => {
                   const optionMenus = item.OrderItemOptions.map((option) => {
                     return {
