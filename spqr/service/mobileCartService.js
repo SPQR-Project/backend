@@ -77,23 +77,23 @@ module.exports = {
 
       console.log(curr_order)
       // Calculate the current sum of the order
-      let totalPrice = 0;
+      let currentOrderPrice = 0;
       if (curr_order && Array.isArray(curr_order)) {
         for (const item of curr_order) {
           if (item.main_menus && Array.isArray(item.main_menus)) {
             for (const menu of item.main_menus) {
-              totalPrice += menu.price;
+              currentOrderPrice += menu.price;
 
               if (menu.option_menus && Array.isArray(menu.option_menus)) {
                 for (const optionMenu of menu.option_menus) {
-                  totalPrice += optionMenu.price;
+                  currentOrderPrice += optionMenu.price;
                 }
               }
             }
           }
         }
       }
-      console.log(totalPrice)
+      console.log('sum of the current order', currentOrderPrice)
 
 
       const pastOrders = await Order.findAll({
@@ -101,20 +101,26 @@ module.exports = {
           restaurant_id,
           branch_id,
           table_number
-        }
-      })
+        },
+        order: [["created_at", 'DESC']],
+        limit: 1
+      }
+      
+      )
+
+      console.log(pastOrders[0].order_status)
 
       let oderId;
       // Check if past orders exist or if the order is active
       // Scenario 1-1: New customer making the first order, and the table's first order
-      if (pastOrders.length === 0) {
+      if (pastOrders.length === 0 || pastOrders[0].order_status === false) {
         console.log('S1 no past order')
         // Create a new order with order_status = 1 (active) and total_price = currentSum
         const order = await Order.create({
           restaurant_id: restaurant_id,
           branch_id: branch_id,
           table_number: table_number,
-          total_price: totalPrice,
+          total_price: currentOrderPrice,
           order_status: 1,
           created_at: new Date(),
           updated_at: new Date()
@@ -125,7 +131,7 @@ module.exports = {
       // Create a new sub_order with order_status = 'pending' and partial_price = currentSum
       const subOrder = await SubOrder.create({
         order_id: orderId,
-        partial_price: totalPrice,
+        partial_price: currentOrderPrice,
         order_status: 'pending',
         created_at: new Date(),
         updated_at: new Date()
@@ -158,14 +164,9 @@ module.exports = {
         }
       }
 
+    
 
-      } else if (pastOrders.order_status === false) {
-        console.log('S2 table used, but no active sub order')
-
-
-
-
-      }
+      } 
       // If past order exists, get the order ID of the past order
       else if (pastOrders.order_status === true) {
         console.log('S3 past order exists, get the id')
