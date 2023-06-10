@@ -73,43 +73,107 @@ module.exports = {
     /* Post current order */
     postCurrentOrder: async (restaurant_id, branch_id, table_number, current_order) => {
 
-      const curr_order = current_order.current_order[0].main_menus
+      const curr_order = current_order.current_order
 
       console.log(curr_order)
-      // Check if past orders exist or if the order is active
+      // Calculate the current sum of the order
+      let totalPrice = 0;
+      if (curr_order && Array.isArray(curr_order)) {
+        for (const item of curr_order) {
+          if (item.main_menus && Array.isArray(item.main_menus)) {
+            for (const menu of item.main_menus) {
+              totalPrice += menu.price;
+
+              if (menu.option_menus && Array.isArray(menu.option_menus)) {
+                for (const optionMenu of menu.option_menus) {
+                  totalPrice += optionMenu.price;
+                }
+              }
+            }
+          }
+        }
+      }
+      console.log(totalPrice)
+
+
       const pastOrders = await Order.findAll({
         where: {
           restaurant_id,
           branch_id,
-          table_number,
-          order_status: 1
+          table_number
         }
       })
 
-      console.log(pastOrders)
-
       let oderId;
-
-      if (pastOrders.length === 0 || pastOrders.every(order => order.order_status === 0)) {
-        // If no past order exists, create a new order
-        console.log('no past order')
-        const newOrder = await Order.create({
-          restaurant_id,
-          branch_id,
-          table_number,
+      // Check if past orders exist or if the order is active
+      // Scenario 1-1: New customer making the first order, and the table's first order
+      if (pastOrders.length === 0) {
+        console.log('S1 no past order')
+        // Create a new order with order_status = 1 (active) and total_price = currentSum
+        const order = await Order.create({
+          restaurant_id: restaurant_id,
+          branch_id: branch_id,
+          table_number: table_number,
+          total_price: totalPrice,
           order_status: 1,
-          total_price: 0,
+          created_at: new Date(),
+          updated_at: new Date()
         });
 
-        orderId = newOrder.order_id;
-      } else {
-        // If past order exists, get the order ID of the past order
-        console.log('past order exists, get the id')
-        const activeOrder = pastOrders.find(order => order.order_status === 1);
-        orderId = activeOrder.order_id;
+      orderId = order.id;
+
+      // Create a new sub_order with order_status = 'pending' and partial_price = currentSum
+      const subOrder = await SubOrder.create({
+        order_id: orderId,
+        partial_price: totalPrice,
+        order_status: 'pending',
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+
+      // Create order items and order item options
+      for (const item of curr_order) {
+        const { main_menus } = item;
+      
+        if (main_menus && Array.isArray(main_menus)) {
+          for (const main_menu of main_menus) {
+            const { id: main_menu_id, price: main_menu_price, option_menus } = main_menu;
+            const orderItem = await OrderItem.create({
+              sub_order_id: subOrder.id,
+              main_menu_id,
+              main_menu_price,
+            });
+      
+            if (option_menus && Array.isArray(option_menus)) {
+              for (const option of option_menus) {
+                const { id: option_menu_id, price: option_menu_price } = option;
+                await OrderItemOption.create({
+                  sub_order_item_id: orderItem.id,
+                  option_menu_id,
+                  option_menu_price,
+                });
+              }
+            }
+          }
+        }
       }
 
-      console.log(orderId)
+
+      } else if (pastOrders.order_status === false) {
+        console.log('S2 table used, but no active sub order')
+
+
+
+
+      }
+      // If past order exists, get the order ID of the past order
+      else if (pastOrders.order_status === true) {
+        console.log('S3 past order exists, get the id')
+        const activeOrder = pastOrders.find(order => order.order_status === true);
+        console.log(activeOrder)
+        orderId = activeOrder.id;
+      }
+
 
       }
 
