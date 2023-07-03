@@ -14,7 +14,7 @@ module.exports = {
             include: [
               {
                 model: BranchMenuStatus,
-                where: { branch_id: branch_id },
+                where: { branch_id: branch_id, active: 1 },
               },
             ],
           },

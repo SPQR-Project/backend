@@ -16,4 +16,8 @@ router.use('/cart_m', require('./cart_m'))
 /** Order view for web */
 router.use('/order_w', require('./order_w'))
 
+/** Menu view for web */
+router.use('/menu_w', require('./menu_w'))
+
+
 module.exports = router;
