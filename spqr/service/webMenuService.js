@@ -38,7 +38,7 @@ module.exports = {
         }
       );
       return affectedRows;
-    } catch (error) {}
+    } catch (error) { }
   },
   deleteMenuCategory: async (
     restaurant_id,
@@ -72,4 +72,20 @@ module.exports = {
       console.log("Invalid delete request.");
     }
   },
+  createMenuCategory: async (
+    restaurant_id,
+    branch_id,
+    new_category) => {
+    try {
+      // Add to MainCategory table
+      const category = await MainCategory.create({
+        restaurant_id: restaurant_id,
+        name: new_category.create_menu_category.category_name,
+        display_order: new_category.create_menu_category.display_order,
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+      return category.id
+    } catch (error) { }
+  }
 };
