@@ -158,17 +158,14 @@ module.exports = {
         attributes: [[Sequelize.fn("MAX", Sequelize.col("id")), "maxId"]],
         raw: true,
       });
-      // Step 1: Add to MainCategory table
-      const mainCategory = await MainCategory.create(
-        {
+      // Step 1: Find MainCategory
+      const mainCategory = await MainCategory.findOne({
+        where: {
           restaurant_id: restaurant_id,
           name: menuData.category,
-          display_order: menuData.display_order,
-          created_at: new Date(),
-          updated_at: new Date(),
         },
-        { transaction }
-      );
+        transaction,
+      });
 
       // Step 2: Add to MainMenu table
       const menu = await MainMenu.create(
@@ -219,15 +216,24 @@ module.exports = {
       await mainCategory.addMainMenu(menu, { transaction });
 
       // Step 5: Add data to BranchMenuStatus table
-      const branchMenuStatus = await BranchMenuStatus.create(
-        {
-          branch_id: branch_id,
-          main_menu_id: menu.id,
-          active: true,
-          updated_at: new Date(),
+      const branch_ids = await Branch.findAll({
+        where: {
+          restaurant_id: restaurant_id,
         },
-        { transaction }
-      );
+        transaction,
+      });
+
+      for (let branch of branch_ids) {
+        const branchMenuStatus = await BranchMenuStatus.create(
+          {
+            branch_id: branch.id,
+            main_menu_id: menu.id,
+            active: true,
+            updated_at: new Date(),
+          },
+          { transaction }
+        );
+      }
 
       // Commit the transaction
       await transaction.commit();
@@ -316,16 +322,6 @@ module.exports = {
           );
         }
       }
-
-      // Step 5: Update data in BranchMenuStatus table
-      await BranchMenuStatus.update(
-        {
-          branch_id: branch_id,
-          active: true,
-          updated_at: new Date(),
-        },
-        { where: { main_menu_id: menu_id }, transaction }
-      );
 
       // Commit the transaction
       await transaction.commit();
