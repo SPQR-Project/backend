@@ -11,16 +11,21 @@ const {
   OptionCategory,
   OptionMenu,
 } = require("../models");
-const Sequelize = require('sequelize');
-const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config.json')[env];
+const Sequelize = require("sequelize");
+const env = process.env.NODE_ENV || "development";
+const config = require("../config/config.json")[env];
 const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
 }
 
 db.sequelize = sequelize;
@@ -50,7 +55,7 @@ module.exports = {
         }
       );
       return affectedRows;
-    } catch (error) { }
+    } catch (error) {}
   },
   deleteMenuCategory: async (
     restaurant_id,
@@ -84,10 +89,7 @@ module.exports = {
       console.log("Invalid delete request.");
     }
   },
-  createMenuCategory: async (
-    restaurant_id,
-    branch_id,
-    new_category) => {
+  createMenuCategory: async (restaurant_id, branch_id, new_category) => {
     try {
       // Add to MainCategory table
       const category = await MainCategory.create({
@@ -97,23 +99,26 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date(),
       });
-      return category.id
-    } catch (error) { }
+      return category.id;
+    } catch (error) {}
   },
   putDisplayOrder: async (restaurant_id, branch_id, curr_request) => {
-    const category_update = curr_request.category_edit
-    const menu_update = curr_request.menu_edit
-    const updated_menu_category_id = []
-    const updated_menu_id = []
+    const category_update = curr_request.category_edit;
+    const menu_update = curr_request.menu_edit;
+    const updated_menu_category_id = [];
+    const updated_menu_id = [];
 
     if (category_update) {
       for (let i = 0; i < category_update.length; i++) {
         const affectedRows = await MainCategory.update(
-          { display_order: category_update[i].display_order, updated_at: new Date() },
+          {
+            display_order: category_update[i].display_order,
+            updated_at: new Date(),
+          },
           {
             where: {
               id: category_update[i].id,
-            }
+            },
           },
           updated_menu_category_id.push(category_update[i].id)
         );
@@ -122,17 +127,20 @@ module.exports = {
     if (menu_update) {
       for (let i = 0; i < menu_update.length; i++) {
         const affectedRows = await MainMenu.update(
-          { display_order: menu_update[i].display_order, updated_at: new Date() },
+          {
+            display_order: menu_update[i].display_order,
+            updated_at: new Date(),
+          },
           {
             where: {
               id: menu_update[i].id,
-            }
+            },
           },
           updated_menu_id.push(menu_update[i].id)
         );
       }
     }
-    return [updated_menu_category_id, updated_menu_id]
+    return [updated_menu_category_id, updated_menu_id];
   },
 
   createMenu: async (restaurant_id, branch_id, imageUrl, menuData) => {
@@ -143,16 +151,13 @@ module.exports = {
       transaction = await sequelize.transaction();
 
       // Parse option_categories JSON data (in array)
-      const optionCategories = JSON.parse(menuData.option_categories);
+      const optionCategories = menuData.option_categories;
 
       // Get max Main menu Id
       const getMaxMainMenuId = await MainMenu.findOne({
-        attributes: [
-          [Sequelize.fn('MAX', Sequelize.col('id')), 'maxId'],
-        ],
-        raw: true
-
-      })
+        attributes: [[Sequelize.fn("MAX", Sequelize.col("id")), "maxId"]],
+        raw: true,
+      });
       // Step 1: Add to MainCategory table
       const mainCategory = await MainCategory.create(
         {
@@ -232,7 +237,7 @@ module.exports = {
     } catch (error) {
       // Rollback the transaction in case of an error
       if (transaction) await transaction.rollback();
-      console.error('Error while creating menu:', error);
+      console.error("Error while creating menu:", error);
       throw error;
     }
   },
@@ -278,7 +283,10 @@ module.exports = {
       );
 
       // Step 3: Delete all related OptionCategory and OptionMenu records for the menu
-      await OptionCategory.destroy({ where: { main_menu_id: menu_id }, transaction });
+      await OptionCategory.destroy({
+        where: { main_menu_id: menu_id },
+        transaction,
+      });
 
       // Step 4: Add to OptionCategory and OptionMenu tables
       for (const optionCategoryData of optionCategories) {
@@ -327,9 +335,8 @@ module.exports = {
     } catch (error) {
       // Rollback the transaction in case of an error
       if (transaction) await transaction.rollback();
-      console.error('Error while updating menu:', error);
+      console.error("Error while updating menu:", error);
       throw error;
     }
-  }
-
+  },
 };
