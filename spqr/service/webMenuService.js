@@ -151,7 +151,7 @@ module.exports = {
       transaction = await sequelize.transaction();
 
       // Parse option_categories JSON data (in array)
-      const optionCategories = menuData.option_categories;
+      const optionCategories = JSON.parse(menuData.option_categories);
 
       // Get max Main menu Id
       const getMaxMainMenuId = await MainMenu.findOne({
